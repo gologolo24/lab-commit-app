@@ -1,0 +1,27 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Secrets: never commit ---
+.env
+.env.*
+*.pem
+*.key
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
