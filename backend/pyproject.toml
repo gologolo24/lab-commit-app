@@ -1,0 +1,19 @@
+[project]
+name = "lab-commit-backend"
+version = "0.0.0" # the released version is in VERSION (passed to the image as APP_VERSION)
+requires-python = ">=3.13"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, bugbear, pyupgrade, bandit (security), simplify
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"] # assert is how pytest works
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

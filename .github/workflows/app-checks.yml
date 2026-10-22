@@ -1,0 +1,41 @@
+# Checks on every PR: lint + tests (the Dockerfile "test" stage) and a build of the
+# real linux/amd64 runtime image (what Fargate runs). No AWS access: releases are
+# built and deployed by CodePipeline after merge.
+name: app-checks
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/app-checks.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [backend, frontend]
+    steps:
+      # Actions pinned to commit SHAs; the tag is in the comment.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: lint + tests
+        run: docker build --target test ${{ matrix.service }}
+
+      - name: build runtime image (linux/amd64)
+        run: |
+          docker build --platform linux/amd64 \
+            --build-arg APP_VERSION="$(cat ${{ matrix.service }}/VERSION)" \
+            -t lab-commit-${{ matrix.service }}:ci ${{ matrix.service }}
+          docker image inspect lab-commit-${{ matrix.service }}:ci \
+            --format 'arch={{.Architecture}} user={{.Config.User}}'
