@@ -6,7 +6,7 @@ import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
-from app import config, db, main, migrate
+from app import config, db, main, migrate, set_value
 
 
 class FakeConnection:
@@ -95,3 +95,18 @@ def test_conninfo_requires_verified_tls():
     info = db.conninfo(config.load(), "app_reader")
     assert "sslmode=verify-full" in info
     assert "sslrootcert=" in info
+
+
+def test_set_value_accepts_one_integer():
+    assert set_value.parse_value(["42"]) == 42
+    assert set_value.parse_value(["-7"]) == -7
+    for bad in ([], ["1", "2"], ["4.2"], ["abc"], [str(2**31)]):
+        with pytest.raises(SystemExit):
+            set_value.parse_value(bad)
+
+
+def test_set_value_inserts_a_row_with_a_bound_parameter():
+    # A new row (history kept), the value passed as a parameter, never formatted in.
+    assert set_value.INSERT_VALUE_SQL.startswith("INSERT INTO lab_values (value) VALUES (%s)")
+    # The backend reads the newest row, so the inserted value is what the page shows.
+    assert "ORDER BY id DESC LIMIT 1" in db.LATEST_VALUE_SQL
