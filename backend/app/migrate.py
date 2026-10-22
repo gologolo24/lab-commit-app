@@ -1,6 +1,6 @@
-"""One-time database setup, run as a Kubernetes Job before each deploy
-(Argo CD PreSync hook, service account db-migrator). Idempotent: safe to run
-any number of times.
+"""One-time database setup, run as a Kubernetes Job before each deploy (Argo CD
+Sync hook that runs before the Deployment, service account db-migrator).
+Idempotent: safe to run any number of times.
 
 - reads the RDS-managed master password from Secrets Manager (the job's IAM role
   may read only that one secret)
