@@ -26,13 +26,14 @@ def test_poller_stores_the_backend_value():
         2,
         client=backend(
             lambda request: httpx.Response(
-                200, json={"value": 5, "updated_at": "2026-10-22T07:00:00"}
+                200, json={"value": 5, "updated_at": "2026-10-22T07:00:00", "version": "1.2.3"}
             )
         ),
     )
     run(poller.poll_once())
     assert poller.snapshot.value == 5
     assert poller.snapshot.backend_ok
+    assert poller.snapshot.backend_version == "1.2.3"
     assert poller.url == "http://backend:8080/api/value"
 
 
@@ -60,7 +61,9 @@ class FakePoller:
 def client(monkeypatch):
     from app.poller import Snapshot
 
-    snapshot = Snapshot(value=5, fetched_at="2026-10-22T07:00:05+00:00", backend_ok=True)
+    snapshot = Snapshot(
+        value=5, fetched_at="2026-10-22T07:00:05+00:00", backend_ok=True, backend_version="1.2.3"
+    )
     monkeypatch.setattr(main, "make_poller", lambda _settings: FakePoller(snapshot))
     with TestClient(main.app) as test_client:
         yield test_client
@@ -83,6 +86,7 @@ def test_api_message_and_version(client):
     body = client.get("/api/message").json()
     assert body["message"].startswith("Hello Lab-Commit v")
     assert body["value"] == 5
+    assert body["backend_version"] == "1.2.3"  # the backend pipeline's smoke test reads this
     assert client.get("/version").json() == {"version": main.settings.app_version}
 
 

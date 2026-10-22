@@ -28,6 +28,7 @@ class Snapshot:
     updated_at: str | None = None  # when the row last changed in the database
     fetched_at: str | None = None  # when the frontend last got an answer
     backend_ok: bool = False
+    backend_version: str | None = None  # lets the backend pipeline check its release end to end
 
 
 class Poller:
@@ -48,6 +49,7 @@ class Poller:
                 updated_at=body.get("updated_at"),
                 fetched_at=now_iso(),
                 backend_ok=True,
+                backend_version=body.get("version"),
             )
         except (httpx.HTTPError, KeyError, ValueError, TypeError) as exc:
             log.warning("backend poll failed: %r", exc)

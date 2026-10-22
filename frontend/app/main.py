@@ -80,6 +80,7 @@ def message(snapshot) -> dict:
         "updated_at": snapshot.updated_at,
         "fetched_at": snapshot.fetched_at,
         "backend_ok": snapshot.backend_ok,
+        "backend_version": snapshot.backend_version,
         "poll_interval_seconds": settings.poll_interval_seconds,
     }
 

@@ -4,7 +4,9 @@
 # Tests and lint run as their own stage (CI and local):
 #   docker build --target test .
 
-FROM python:3.13-slim@sha256:27b7c9d4f13ca20bb1170148f02095d50a5dfce1f7f2dabf5ca273727e43b7ea AS base
+# Docker Official Image, pulled from its ECR Public mirror (same digest as Docker Hub,
+# no Docker Hub pull limits in CodeBuild).
+FROM public.ecr.aws/docker/library/python:3.13-slim@sha256:27b7c9d4f13ca20bb1170148f02095d50a5dfce1f7f2dabf5ca273727e43b7ea AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
