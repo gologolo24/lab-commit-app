@@ -30,10 +30,15 @@ ARG APP_VERSION=0.0.0
 ENV APP_VERSION=${APP_VERSION}
 COPY --from=deps /install /usr/local
 # RDS CA bundle for TLS verification (sslmode=verify-full); the checksum is pinned.
+# The folder is created first: ADD --chmod would also give a folder it creates
+# mode 0644, and the app user could not open files in it.
+RUN mkdir -m 0755 /app/certs
 ADD --checksum=sha256:90a6f1a7978a1b1b096dca6c57511ca48d3b8cf052f8e704baf358f34ea2f21b --chmod=0644 \
     https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem /app/certs/rds-global-bundle.pem
 COPY app ./app
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app
 USER 10001
+# Fail the build if the app user cannot load the CA bundle.
+RUN python -c "import ssl; ssl.create_default_context(cafile='/app/certs/rds-global-bundle.pem')"
 EXPOSE 8080
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--no-server-header", "--no-access-log"]
