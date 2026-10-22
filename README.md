@@ -16,6 +16,7 @@ Chrome (Windows client) --HTTPS--> internal ALB --> frontend --every 5 s--> back
 | `frontend/` | Polls the backend **every 5 seconds** (`POLL_INTERVAL_SECONDS`) and serves **"Hello Lab-Commit v&lt;version&gt;"** plus the database value. The open page refreshes itself. If the backend is down it keeps the last value and says so. | `/` page, `/api/message`, `/version`, `/healthz`, `/readyz`, `/metrics` |
 | `backend/` | Runs `SELECT value, updated_at FROM lab_values ORDER BY id DESC LIMIT 1` on RDS. Inside the cluster only (no Ingress). | `/api/value`, `/healthz`, `/readyz` (checks the DB), `/metrics` |
 | `backend` → `python -m app.migrate` | One-time, idempotent DB setup run as a Kubernetes Job before each deploy: table `lab_values`, seed value `5`, read-only user `app_reader` | – |
+| `backend` → `python -m app.set_value <n>` | Demo/admin command: inserts a new value (the page shows it within 5 s). Run as a one-off Job by `scripts/set-db-value.sh` in the infra repo, with the migration job's identity | – |
 
 ## Security
 - **No database password in the app.** The backend logs in as `app_reader` with a **15-minute IAM auth token** (IRSA role allowed only `rds-db:connect` for that user). `app_reader` may only `SELECT` from `lab_values`.
